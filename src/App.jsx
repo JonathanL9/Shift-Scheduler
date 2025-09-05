@@ -1,9 +1,15 @@
 import React, { useState } from "react";
 import ShiftScheduler from "./components/ShiftScheduler";
+import EditWorkFlow from "./components/Edit";
 
 export default function App() {
   const [shiftCount, setShiftCount] = useState(0);
   const [schedules, setSchedules] = useState([]);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const toggleSection = () => {
+    setIsExpanded(prev => !prev);
+  };
 
   const addShift = () => {
     const id = shiftCount + 1;
@@ -26,7 +32,7 @@ export default function App() {
             onClick={addShift}
             className="px-8 py-3 border border-black rounded-lg hover:bg-black hover:text-white font-semibold shadow transition-all"
           >
-            Add Work Shift
+            Activate Work Shift
           </button>
         </div>
 
@@ -36,6 +42,24 @@ export default function App() {
           ))}
         </div>
       </main>
+<div className="">
+    <button
+  className="w-full px-6 py-4 text-lg font-semibold text-white bg-black rounded-lg shadow-md hover:bg-gray-800 transition duration-300 ease-in-out"
+  onClick={toggleSection}
+>
+  <span className="text-white">
+ {isExpanded ? '▲ Collapse WorkFlow' : '▼ Expand WorkFlow'}
+  </span>
+</button>
+
+
+      {isExpanded && (
+        <div className="content">
+         <EditWorkFlow></EditWorkFlow>
+        </div>
+      )}
+    </div>
+      
     </div>
   );
 }

@@ -136,6 +136,13 @@ export default function EditWorkFlow() {
     setEditingLocation(null);
   };
 
+  const cancelEdit = () => {
+    setNewLocation("");
+    setNewZones([]);
+    setCurrentLocation(null);
+    setEditingLocation(null);
+  };
+
   const deleteLocation = (loc) => {
     const confirmed = window.confirm(`Are you sure you want to delete ${loc}?`);
     if (confirmed) {
@@ -283,13 +290,23 @@ export default function EditWorkFlow() {
             </div>
           ))}
 
-          <button
-            onClick={editingLocation ? saveEditedLocation : confirmLocation}
-            className="bg-green-500 text-white px-4 py-2 rounded mt-4"
-            disabled={newZones.length === 0}
-          >
-            {editingLocation ? "Save Changes" : "Confirm Location"}
-          </button>
+          <div className="flex gap-4 mt-4">
+            <button
+              onClick={editingLocation ? saveEditedLocation : confirmLocation}
+              className="bg-green-500 text-white px-4 py-2 rounded"
+              disabled={newZones.length === 0}
+            >
+              {editingLocation ? "Save Changes" : "Confirm Location"}
+            </button>
+            {editingLocation && (
+              <button
+                onClick={cancelEdit}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+              >
+                Cancel Edit
+              </button>
+            )}
+          </div>
         </div>
       )}
 

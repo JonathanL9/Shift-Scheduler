@@ -190,12 +190,7 @@ export default function EditWorkFlow() {
       <h2 className="text-2xl font-bold text-gray-900">Edit Work Flow</h2>
 
       <div className="flex gap-4">
-        <button
-          onClick={clearAllData}
-          className="bg-red-500 hover:bg-red-600 text-white font-semibold px-5 py-2 rounded-lg shadow transition-all"
-        >
-          Clear All
-        </button>
+       
         <label className="bg-gray-200 hover:bg-gray-300 text-black font-semibold px-5 py-2 rounded-lg shadow transition-all cursor-pointer">
           Import Workflow JSON
           <input
@@ -342,6 +337,12 @@ export default function EditWorkFlow() {
           </div>
         ))}
       </div>
+       <button
+          onClick={clearAllData}
+          className="bg-red-500 hover:bg-red-600 text-white font-semibold px-5 py-2 rounded-lg shadow transition-all"
+        >
+          Clear All
+        </button>
     </div>
   );
 }

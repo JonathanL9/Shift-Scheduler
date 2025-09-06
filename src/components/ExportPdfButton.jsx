@@ -38,7 +38,7 @@ const ExportPDFButton = ({ sectionId }) => {
 
       // Extract table data
       const rows = tableEl.querySelectorAll("tbody tr");
-      const rawRows = [];
+      const tableData = [];
       let currentShift = "";
       let currentTime = "";
 
@@ -68,49 +68,11 @@ const ExportPDFButton = ({ sectionId }) => {
         );
         const namesCell = names.join("\n");
 
-        rawRows.push({ shift, time, breakTime, namesCell });
-      });
-
-      // Build merged table data
-      const tableData = [];
-      const shiftTracker = {};
-      const timeTracker = {};
-
-      rawRows.forEach((row, i) => {
-        const shiftKey = row.shift;
-        const timeKey = `${row.shift}-${row.time}`;
-
-        const isFirstShift = shiftTracker[shiftKey] === undefined;
-        const isFirstTime = timeTracker[timeKey] === undefined;
-
-        if (isFirstShift) {
-          shiftTracker[shiftKey] = rawRows.slice(i).filter(r => r.shift === row.shift).length;
-        }
-        if (isFirstTime) {
-          timeTracker[timeKey] = rawRows.slice(i).filter(r => r.shift === row.shift && r.time === row.time).length;
-        }
-
-        const shiftCell = isFirstShift
-          ? { content: row.shift, rowSpan: shiftTracker[shiftKey] }
-          : { content: "" };
-
-        const timeCell = isFirstTime
-          ? { content: row.time, rowSpan: timeTracker[timeKey] }
-          : { content: "" };
-
-        tableData.push([
-          shiftCell,
-          timeCell,
-          row.breakTime,
-          row.namesCell
-        ]);
-
-        shiftTracker[shiftKey] = shiftTracker[shiftKey] ? shiftTracker[shiftKey] - 1 : 0;
-        timeTracker[timeKey] = timeTracker[timeKey] ? timeTracker[timeKey] - 1 : 0;
+        tableData.push([shift, time, breakTime, namesCell]);
       });
 
       // Add header
-      pdf.setFontSize(14);
+      pdf.setFontSize(10); // Reduced from 14 to 12 for smaller headers
       pdf.setTextColor(31, 41, 55);
       pdf.text(header, margin, y);
       y += 8;

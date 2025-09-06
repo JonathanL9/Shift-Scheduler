@@ -51,15 +51,24 @@ export default function ShiftScheduler({ id }) {
   const [breakTime, setBreakTime] = useState("");
   const [breakDuration, setBreakDuration] = useState("");
   const [tables, setTables] = useState([]);
-  const [locationZoneRoleMap, setLocationZoneRoleMap] = useState(defaultLocationZoneRoleMap);
-  const [zoneCaptainMap, setZoneCaptainMap] = useState(defaultZoneCaptainMap);
-  const [locations, setLocations] = useState(Object.keys(defaultLocationZoneRoleMap));
+  const [locationZoneRoleMap, setLocationZoneRoleMap] = useState(() => {
+    const stored = localStorage.getItem('locationZoneRoleMap');
+    return stored ? JSON.parse(stored) : defaultLocationZoneRoleMap;
+  });
+  const [zoneCaptainMap, setZoneCaptainMap] = useState(() => {
+    const stored = localStorage.getItem('zoneCaptainMap');
+    return stored ? JSON.parse(stored) : defaultZoneCaptainMap;
+  });
+  const [locations, setLocations] = useState(Object.keys(
+    localStorage.getItem('locationZoneRoleMap')
+      ? JSON.parse(localStorage.getItem('locationZoneRoleMap'))
+      : defaultLocationZoneRoleMap
+  ));
   const [availableZones, setAvailableZones] = useState([]);
   const [availableRoles, setAvailableRoles] = useState([]);
   const [availableCaptains, setAvailableCaptains] = useState([]);
   const editingIndex = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
-
 
   useEffect(() => {
     setLocations(Object.keys(locationZoneRoleMap));
@@ -107,14 +116,13 @@ export default function ShiftScheduler({ id }) {
   };
 
   const clearAllTables = () => {
-  const confirmed = window.confirm(
-    "Are you sure you want to remove ALL tables? This action cannot be undone."
-  );
-  if (confirmed) {
-    setTables([]); // Clear all tables
-  }
-};
-
+    const confirmed = window.confirm(
+      "Are you sure you want to remove ALL tables? This action cannot be undone."
+    );
+    if (confirmed) {
+      setTables([]);
+    }
+  };
 
   const assignBreaks = (names, shiftStartHour) => {
     if (!breakTime || !breakDuration) {
@@ -156,7 +164,6 @@ export default function ShiftScheduler({ id }) {
     setLocation(locations[0] || "");
     editingIndex.current = null;
     setIsEditing(false);
-
   };
 
   const addOrUpdateUsers = () => {
@@ -202,63 +209,62 @@ export default function ShiftScheduler({ id }) {
   };
 
   const editTable = (index) => {
-  const t = tables[index];
+    const t = tables[index];
   
-  // Validate location, zone, role, and zone captain
-  let isValid = true;
-  let warningMessage = "The following data from the table is not available in the current workflow. Please reselect:\n";
+    // Validate location, zone, role, and zone captain
+    let isValid = true;
+    let warningMessage = "The following data from the table is not available in the current workflow. Please reselect:\n";
 
-  // Check if location exists
-  if (!locationZoneRoleMap[t.location]) {
-    isValid = false;
-    warningMessage += `- Location: ${t.location}\n`;
-  }
+    // Check if location exists
+    if (!locationZoneRoleMap[t.location]) {
+      isValid = false;
+      warningMessage += `- Location: ${t.location}\n`;
+    }
 
-  // Check if zone exists for the location
-  if (isValid && t.zone && (!locationZoneRoleMap[t.location] || !locationZoneRoleMap[t.location].zones.includes(t.zone))) {
-    isValid = false;
-    warningMessage += `- Zone: ${t.zone}\n`;
-  }
+    // Check if zone exists for the location
+    if (isValid && t.zone && (!locationZoneRoleMap[t.location] || !locationZoneRoleMap[t.location].zones.includes(t.zone))) {
+      isValid = false;
+      warningMessage += `- Zone: ${t.zone}\n`;
+    }
 
-  // Check if role exists for the zone
-  if (isValid && t.role && (!locationZoneRoleMap[t.location] || !locationZoneRoleMap[t.location].roles[t.zone]?.includes(t.role))) {
-    isValid = false;
-    warningMessage += `- Role: ${t.role}\n`;
-  }
+    // Check if role exists for the zone
+    if (isValid && t.role && (!locationZoneRoleMap[t.location] || !locationZoneRoleMap[t.location].roles[t.zone]?.includes(t.role))) {
+      isValid = false;
+      warningMessage += `- Role: ${t.role}\n`;
+    }
 
-  // Check if zone captain exists
-  if (isValid && t.zoneCaptain && (!zoneCaptainMap[t.zone] || !zoneCaptainMap[t.zone].includes(t.zoneCaptain))) {
-    isValid = false;
-    warningMessage += `- Zone Captain: ${t.zoneCaptain}\n`;
-  }
+    // Check if zone captain exists
+    if (isValid && t.zoneCaptain && (!zoneCaptainMap[t.zone] || !zoneCaptainMap[t.zone].includes(t.zoneCaptain))) {
+      isValid = false;
+      warningMessage += `- Zone Captain: ${t.zoneCaptain}\n`;
+    }
 
-  // Show warning if validation fails
-  if (!isValid) {
-    alert(warningMessage + "\nPlease update the selections for this table.");
-    // Reset invalid fields to prompt reselection
-    setLocation(t.location && locationZoneRoleMap[t.location] ? t.location : locations[0] || "");
-    setZone(t.zone && locationZoneRoleMap[t.location]?.zones.includes(t.zone) ? t.zone : "");
-    setRole(t.role && locationZoneRoleMap[t.location]?.roles[t.zone]?.includes(t.role) ? t.role : "");
-    setZoneCaptain(t.zoneCaptain && zoneCaptainMap[t.zone]?.includes(t.zoneCaptain) ? t.zoneCaptain : "");
-  } else {
-    // Set all fields if valid
-    setLocation(t.location);
-    setZone(t.zone);
-    setRole(t.role);
-    setZoneCaptain(t.zoneCaptain || "");
-  }
+    // Show warning if validation fails
+    if (!isValid) {
+      alert(warningMessage + "\nPlease update the selections for this table.");
+      // Reset invalid fields to prompt reselection
+      setLocation(t.location && locationZoneRoleMap[t.location] ? t.location : locations[0] || "");
+      setZone(t.zone && locationZoneRoleMap[t.location]?.zones.includes(t.zone) ? t.zone : "");
+      setRole(t.role && locationZoneRoleMap[t.location]?.roles[t.zone]?.includes(t.role) ? t.role : "");
+      setZoneCaptain(t.zoneCaptain && zoneCaptainMap[t.zone]?.includes(t.zoneCaptain) ? t.zoneCaptain : "");
+    } else {
+      // Set all fields if valid
+      setLocation(t.location);
+      setZone(t.zone);
+      setRole(t.role);
+      setZoneCaptain(t.zoneCaptain || "");
+    }
 
-  // Set remaining fields
-  setIsFullDay(t.isFullDay);
-  setMorningNames(t.morningRaw);
-  setAfternoonNames(t.afternoonRaw);
-  setFullDayNames(t.fullDayRaw);
-  setBreakTime(t.breakTime);
-  setBreakDuration(t.breakDuration);
-  editingIndex.current = index;
-  setIsEditing(true);
-
-};
+    // Set remaining fields
+    setIsFullDay(t.isFullDay);
+    setMorningNames(t.morningRaw);
+    setAfternoonNames(t.afternoonRaw);
+    setFullDayNames(t.fullDayRaw);
+    setBreakTime(t.breakTime);
+    setBreakDuration(t.breakDuration);
+    editingIndex.current = index;
+    setIsEditing(true);
+  };
 
   const deleteTable = (index) => {
     const confirmed = window.confirm("Are you sure you want to delete this item?");
@@ -292,15 +298,33 @@ export default function ShiftScheduler({ id }) {
     const reader = new FileReader();
     reader.onload = (event) => {
       const data = JSON.parse(event.target.result);
-      setLocationZoneRoleMap(data.locationZoneRoleMap || defaultLocationZoneRoleMap);
-      setZoneCaptainMap(data.zoneCaptainMap || defaultZoneCaptainMap);
+      const newLocationZoneRoleMap = data.locationZoneRoleMap || defaultLocationZoneRoleMap;
+      const newZoneCaptainMap = data.zoneCaptainMap || defaultZoneCaptainMap;
+      setLocationZoneRoleMap(newLocationZoneRoleMap);
+      setZoneCaptainMap(newZoneCaptainMap);
+      // Save to localStorage
+      localStorage.setItem('locationZoneRoleMap', JSON.stringify(newLocationZoneRoleMap));
+      localStorage.setItem('zoneCaptainMap', JSON.stringify(newZoneCaptainMap));
     };
     reader.readAsText(file);
   };
 
+  const clearWorkflow = () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to clear the current workflow JSON and revert to default data?"
+    );
+    if (confirmed) {
+      localStorage.removeItem('locationZoneRoleMap');
+      localStorage.removeItem('zoneCaptainMap');
+      setLocationZoneRoleMap(defaultLocationZoneRoleMap);
+      setZoneCaptainMap(defaultZoneCaptainMap);
+    }
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-md p-6 space-y-6">
-       <label className="bg-gray-200 hover:bg-gray-300 text-black font-semibold px-5 py-2 rounded-lg shadow transition-all cursor-pointer">
+      <div className="flex gap-4">
+        <label className="bg-gray-200 hover:bg-gray-300 text-black font-semibold px-5 py-2 rounded-lg shadow transition-all cursor-pointer">
           Import Workflow JSON
           <input
             type="file"
@@ -309,11 +333,17 @@ export default function ShiftScheduler({ id }) {
             className="hidden"
           />
         </label>
+        <button
+          onClick={clearWorkflow}
+          className="bg-red-500 hover:bg-red-600 text-white font-semibold px-5 py-2 rounded-lg shadow transition-all"
+        >
+          Clear Current Workflow JSON
+        </button>
+      </div>
       <h2 className="text-2xl font-bold text-gray-900">#{id}</h2>
 
       {/* Dropdowns */}
       <div className="flex items-center gap-4 flex-wrap">
-
         <label className="font-medium text-gray-700">Location:</label>
         <select
           value={location}
@@ -462,15 +492,14 @@ export default function ShiftScheduler({ id }) {
         >
           {editingIndex.current !== null ? "Update Schedule" : "Add Schedule"}
         </button>
-          {isEditing && (
-    <button
-      onClick={resetInputs}
-      className="bg-red-200 hover:bg-red-300 text-black font-semibold px-5 py-2 rounded-lg shadow transition-all"
-    >
-      Cancel Edit
-    </button>
-  )}
-
+        {isEditing && (
+          <button
+            onClick={resetInputs}
+            className="bg-red-200 hover:bg-red-300 text-black font-semibold px-5 py-2 rounded-lg shadow transition-all"
+          >
+            Cancel Edit
+          </button>
+        )}
         <button
           onClick={exportData}
           className="bg-gray-200 hover:bg-gray-300 text-black font-semibold px-5 py-2 rounded-lg shadow transition-all"
@@ -486,7 +515,6 @@ export default function ShiftScheduler({ id }) {
             className="hidden"
           />
         </label>
-        
       </div>
 
       {/* Generated Tables */}
@@ -496,9 +524,8 @@ export default function ShiftScheduler({ id }) {
             <div className="overflow-x-auto bg-gray-50 border border-gray-200 rounded-xl shadow-inner p-4 mt-4">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-xl font-semibold text-gray-900">
-                  #{tables.length - idx} - Location: {table.location} &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;  Role: {table.role}  <br></br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Zone: {table.zone} &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;  Zone Captain: {table.zoneCaptain || "None"}
+                  #{tables.length - idx} - Location: {table.location} &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp; Role: {table.role} <br></br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Zone: {table.zone} &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; Zone Captain: {table.zoneCaptain || "None"}
                 </h3>
-
                 <div className="flex gap-2">
                   <button
                     onClick={() => deleteTable(idx)}
@@ -638,17 +665,15 @@ export default function ShiftScheduler({ id }) {
           </div>
         ))}
       </div>
-     <div className="flex justify-between items-center w-full mt-4">
-  <ExportPDFButton sectionId="scheduleSection" />
-
-  <button
-    onClick={clearAllTables}
-    className="bg-red-500 hover:bg-red-600 text-white font-semibold px-5 py-2 rounded-lg shadow transition-all"
-  >
-    Clear All Tables
-  </button>
-</div>
-
+      <div className="flex justify-between items-center w-full mt-4">
+        <ExportPDFButton sectionId="scheduleSection" />
+        <button
+          onClick={clearAllTables}
+          className="bg-red-500 hover:bg-red-600 text-white font-semibold px-5 py-2 rounded-lg shadow transition-all"
+        >
+          Clear All Tables
+        </button>
+      </div>
     </div>
   );
 }
